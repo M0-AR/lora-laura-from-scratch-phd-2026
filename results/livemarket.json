@@ -1,0 +1,11 @@
+{
+  "source": "yfinance_live",
+  "n_windows": 117,
+  "full_train": 1.0,
+  "full_val": 0.5833,
+  "full_params": 2434,
+  "lora_train": 0.9136,
+  "lora_val": 0.6111,
+  "lora_params": 680,
+  "lora_pct": 27.94
+}

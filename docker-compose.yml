@@ -1,0 +1,16 @@
+services:
+  lora-study:
+    build: .
+    volumes:
+      - ./results:/work/results
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LORA_SEED=0
+    command: python3 benchmarks/run_all_benchmarks.py --fast
+  lora-full:
+    build: .
+    volumes:
+      - ./results:/work/results
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: python3 benchmarks/run_all_benchmarks.py --full

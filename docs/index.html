@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>LoRA from Scratch — 8 Steps in NumPy, Verified on Live Data</title>
+<meta name="description" content="Rebuild Low-Rank Adaptation from zero in NumPy: 1.6M-param LM, pirate/polite adapters at 1.14%, merge error 2.8e-14, verified on live market data."/>
+<style>
+:root{--bg:#0b1220;--card:#111c33;--line:#22314f;--txt:#e6edf7;--mut:#9fb0c9;--acc:#38bdf8;--ok:#4ade80;--warn:#fbbf24}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--txt);line-height:1.6}
+.wrap{max-width:1020px;margin:0 auto;padding:24px}
+nav{position:sticky;top:0;background:rgba(11,18,32,.92);border-bottom:1px solid var(--line);z-index:5}
+nav .wrap{display:flex;gap:14px;flex-wrap:wrap;padding:10px 24px;font-size:14px}
+nav a{color:var(--mut);text-decoration:none}nav a:hover{color:var(--acc)}
+.hero{border:1px solid var(--line);border-radius:16px;padding:28px;background:linear-gradient(180deg,#0f1b33,#0b1220);margin:20px 0}
+.badges img{margin:2px 4px 2px 0}
+.btn{display:inline-block;background:var(--acc);color:#04121f;font-weight:700;border-radius:10px;padding:10px 16px;text-decoration:none;margin:6px 8px 6px 0}
+.btn.ghost{background:transparent;color:var(--txt);border:1px solid var(--line)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.card{border:1px solid var(--line);border-radius:14px;padding:16px;background:var(--card)}
+.card h3{margin:.2em 0}.mut{color:var(--mut)}.small{font-size:13px}
+pre{background:#070d1a;border:1px solid var(--line);border-radius:10px;padding:12px;overflow:auto;font-size:13px}
+code{color:#bfe3ff}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{border:1px solid var(--line);padding:8px;text-align:center}
+th{background:#0f1d36}img.chart{width:100%;border-radius:10px;border:1px solid var(--line);background:#fff}
+details{border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin:8px 0;background:var(--card)}
+#quiz{border:1px solid var(--line);border-radius:14px;padding:18px;background:var(--card)}
+.opt{display:block;width:100%;text-align:left;margin:6px 0;padding:10px;border-radius:10px;border:1px solid var(--line);background:#0d1730;color:var(--txt);cursor:pointer}
+.opt:hover{border-color:var(--acc)}.opt.ok{border-color:var(--ok)}.opt.bad{border-color:#f87171}
+.bar{height:10px;background:#0d1730;border-radius:6px;overflow:hidden}.bar>i{display:block;height:100%;background:var(--acc)}
+footer{color:var(--mut);font-size:13px;margin:30px 0}
+.level{display:inline-block;font-size:12px;border:1px solid var(--line);border-radius:20px;padding:2px 10px;color:var(--mut)}
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+<a href="#top">Top</a><a href="#start">Quick start</a><a href="#beginner">Beginner guide</a><a href="#quiz-sec">Quiz</a><a href="#results">Results</a><a href="#stories">User stories</a><a href="#faq">FAQ</a><a href="#pages">GitHub Pages</a>
+</div></nav>
+<div class="wrap" id="top">
+
+<div class="hero">
+<div class="badges">
+<img alt="License MIT" src="https://img.shields.io/badge/License-MIT-green.svg"/>
+<img alt="Python 3.12" src="https://img.shields.io/badge/Python-3.12-blue.svg"/>
+<img alt="NumPy only" src="https://img.shields.io/badge/NumPy-only-orange.svg"/>
+<img alt="Docker ready" src="https://img.shields.io/badge/Docker-ready-blue.svg"/>
+<img alt="Results reproduced" src="https://img.shields.io/badge/results-reproduced-brightgreen.svg"/>
+</div>
+<h1>LoRA from Scratch: one tiny file turns a plain model into a pirate — then back</h1>
+<p><strong>CEO summary in 30 seconds:</strong> We teach a 1.6M-number model plain English (99.8% correct), then customize it two ways — the expensive way (retrain everything, forgets English) and the LoRA way (freeze everything, train a 1%-size add-on file). The add-on matches quality (99.5%), never touches the base, merges with zero error, and hot-swaps pirate↔polite. The same pattern holds on human sentences and on <strong>live stock-market data</strong>. Everything runs on a laptop with NumPy only, from 8 small programs.</p>
+<p>
+<a class="btn" href="#start">Run it in 3 steps</a>
+<a class="btn ghost" href="#quiz-sec">Test yourself: 12-question lab</a>
+<a class="btn ghost" href="assets/demo.mp4">Watch the 20-second demo (MP4)</a>
+</p>
+<p class="small mut">Visual proof (generated from measured results, not mockups):</p>
+<img class="chart" alt="Demo animation of measured validity bars" src="assets/demo.gif"/>
+</div>
+
+<h2 id="start">Quick start (3 steps, copy-paste)</h2>
+<pre><code>pip install -r requirements.txt
+python3 benchmarks/run_all_benchmarks.py --fast   # ~10 min, writes results/*.json
+python3 -m pytest tests/ -v                        # 2 passed</code></pre>
+<pre><code>docker compose up lora-study   # same pipeline, reproducible container</code></pre>
+
+<h2 id="demo">Watch: what swapping looks like</h2>
+<div class="grid">
+<div class="card"><h3>Terminal replay</h3>
+<video controls width="100%" src="assets/demo.mp4"></video>
+<p class="small mut">Bars grow to the measured values: base 99.8%, full-FT 99.3%, truncated-r4 18.3%, LoRA-r4 99.5%, live-LoRA 61.1%.</p></div>
+<div class="card"><h3>Try the swap yourself</h3>
+<pre><code>python3 src/01_base_model.py --steps 1200
+python3 src/06_train_lora.py --kind pirate
+python3 src/07_merge_swap.py
+# no-adapter plain: 400/400
+# pirate: 397/400 · polite: 395/400</code></pre></div>
+</div>
+
+<h2 id="beginner">🌱 Beginner guide — read this and you are a professional</h2>
+<p><em>You will know more than most interview candidates.</em> Let's work this out in a step-by-step way to be sure we have the right answer.</p>
+<div class="grid">
+<div class="card"><h3>Level 1 · What (5 min)</h3><p>A language model predicts the next word. Fine-tuning teaches it a style. Full fine-tuning rewrites <strong>all 1,644,608 numbers</strong> (and forgets). LoRA freezes them and learns a side path: squeeze through <strong>4 numbers</strong>, spread back, add. File: 75KB vs 6.6MB.</p><p class="small mut">Run: <code>src/05_lora_layer.py</code> (fresh adapter = exactly the base, diff 0.0).</p></div>
+<div class="card"><h3>Level 2 · How (15 min)</h3><p>Forward: <code>out = W·x + (α/r)·B·(A·x)</code>, α=8, r=4, scale=2. Only A,B get gradients; base never in the optimizer. Merge when done: <code>W ← W + scale·B·A</code> (error 2.8e-14). Swap files for new styles.</p><p class="small mut">Run: <code>src/06_train_lora.py</code> then <code>src/07_merge_swap.py</code>.</p></div>
+<div class="card"><h3>Level 3 · Why it works (30 min)</h3><p>Style change needs ≈2 directions (r=2 already 94.8%). Finished change can't be cut to r=4 (18.3%) but <em>training</em> at r=4 finds 99.5%. No single matrix suffices (W2-only 32.7%); spread rank across matrices. Same on live market data.</p><p class="small mut">Run: <code>src/03_delta_svd.py src/04_rank_demo.py src/08_rank_alpha.py</code>.</p></div>
+</div>
+
+<h2 id="quiz-sec">Interactive lab — from scratch to pro (12 questions)</h2>
+<div id="quiz">
+<div class="bar"><i id="qp" style="width:0%"></i></div>
+<p><span class="level" id="ql">Level 1 · Foundations</span> <span class="small mut" id="qc"></span></p>
+<h3 id="qq"></h3>
+<div id="qo"></div>
+<p id="qf" class="small"></p>
+<details><summary>Let's work this out in a step-by-step way (hint)</summary><p id="qh" class="small mut"></p></details>
+<p><button class="btn" id="qn" style="display:none">Next →</button></p>
+<p class="small mut">Score: <span id="qs">0</span>/12 · <span id="qdone"></span></p>
+</div>
+
+<h2 id="results">Results (every number measured — see results/*.json)</h2>
+<div class="grid">
+<div class="card"><h3>Rank sweep</h3><img class="chart" alt="Rank sweep chart" src="assets/chart_rank.png"/><p class="small mut">r=1: 61.5% → r=2: 94.8% → r=4: 97.5% → r=8: 98.8% → r=16: 99.3%.</p></div>
+<div class="card"><h3>Truncate ≠ train</h3><img class="chart" alt="Truncation vs training chart" src="assets/chart_truncation.png"/><p class="small mut">Cutting a finished change to r=4: 18.3%. Training at r=4: 97.5%+.</p></div>
+<div class="card"><h3>Live market spectrum</h3><img class="chart" alt="Market eigenvalue chart" src="assets/chart_market.png"/><p class="small mut">Top-2 factors explain 57.2% (live feed).</p></div>
+<div class="card"><h3>Head-to-head</h3><img class="chart" alt="Full vs LoRA comparison" src="assets/chart_compare.png"/><p class="small mut">Full-FT forgets (plain 1.10→6.73); LoRA-off keeps 1.10.</p></div>
+</div>
+<h3>Traceability table</h3>
+<table><tr><th>Claim</th><th>Measured</th><th>File</th></tr>
+<tr><td>Base valid</td><td>998/1000, loss 1.10</td><td>step1.json</td></tr>
+<tr><td>Full-FT pirate</td><td>10.53→0.89, 993/1000</td><td>step2.json</td></tr>
+<tr><td>Truncate r4</td><td>18.3%</td><td>step4.json</td></tr>
+<tr><td>LoRA r4 pirate / polite</td><td>99.5% / 98.8%, frozen ✓</td><td>step6.json</td></tr>
+<tr><td>Merge error</td><td>2.8e-14</td><td>07 log</td></tr>
+<tr><td>Ablation W1/W2/W3/all</td><td>1.7% / 32.7% / 5.0% / 98.0%</td><td>hidden.json</td></tr>
+<tr><td>Live next-day</td><td>full 58.3% vs LoRA 61.1% (27.9% params)</td><td>livemarket.json</td></tr>
+</table>
+
+<h2 id="features">Features</h2>
+<table><tr><th>Feature</th><th>What you get</th></tr>
+<tr><td>8 runnable steps</td><td>base → full-FT → ΔW spectrum → truncation → LoRA layer → LoRA train → merge/swap → rank/α</td></tr>
+<tr><td>NumPy only</td><td>No framework; Adam + autograd-by-hand in src/common.py</td></tr>
+<tr><td>Exact counts</td><td>1,644,608 base · 18,688 adapter (asserted by tests)</td></tr>
+<tr><td>Swap, don't copy</td><td>100 styles: 1316MB copies vs 28.3MB base+adapters</td></tr>
+<tr><td>Hidden patterns</td><td>intrinsic rank ≈2 · W3 k90=8 · breadth-beats-rank</td></tr>
+<tr><td>Real + live proof</td><td>human sentences + Yahoo Finance spectrum + live trading-toy</td></tr>
+<tr><td>One-command repro</td><td>benchmarks/run_all_benchmarks.py + Docker Compose</td></tr></table>
+
+<h2 id="stories">User stories — what you can use this repo for</h2>
+<div class="grid">
+<div class="card"><h3>Students</h3><p>Learn fine-tuning without GPUs or frameworks. Finish the quiz and you can whiteboard LoRA in interviews.</p></div>
+<div class="card"><h3>Interview prep</h3><p>Answer: rank vs α, why B=0, merge math, when LoRA fails, QLoRA/DoRA/rsLoRA in one line each.</p></div>
+<div class="card"><h3>Practitioners</h3><p>Copy the swap pattern: one frozen base + many small task files; regression-test merged vs unmerged logits.</p></div>
+<div class="card"><h3>Researchers</h3><p>Extend H1–H3: per-layer rank budgets, subspace overlap pirate-vs-polite, α–LR law, sequential styles.</p></div>
+<div class="card"><h3>Finance quants</h3><p>Reuse the live-market harness as a template for parameter-efficient regime adapters.</p></div>
+<div class="card"><h3>Teachers</h3><p>Assign steps 1–8 as labs; the quiz + charts are ready-made slides.</p></div>
+</div>
+
+<h2>Architecture</h2>
+<img class="chart" alt="Frozen base plus LoRA side path diagram" src="assets/architecture.svg"/>
+
+<h2 id="faq">FAQ</h2>
+<details><summary>Is LoRA the same as compressing the model?</summary><p>No. The base stays full-rank and frozen. Only the <em>change</em> is low-rank.</p></details>
+<details><summary>Why does truncating to r=4 fail but training at r=4 work?</summary><p>Full fine-tuning spreads its change over ~71 directions. Truncation keeps 4 of someone else's directions; training finds the best 4 from the start (97.5%+).</p></details>
+<details><summary>Which matrix matters most?</summary><p>W2 alone (32.7%) beats W1 (1.7%) and W3 (5.0%), but all three reach 98.0%. Spread budget, don't concentrate it.</p></details>
+<details><summary>What rank/α should I start with?</summary><p>r=8, α=16 (scale 2.0). Raise rank only if validation plateaus; α=1 is too quiet here (41.8%).</p></details>
+<details><summary>Does it work on real data?</summary><p>Yes: human sentences (LoRA-r4 83.3% vs rule 90%, full 100%) and live next-day prediction (LoRA 61.1% vs full 58.3%).</p></details>
+
+<h2 id="pages">View as a website (GitHub Pages, 2026)</h2>
+<pre><code># publish this page for your fork (deploy from branch):
+# 1. Push. 2. GitHub → Settings → Pages → Deploy from a branch
+# 3. Branch: main · Folder: /docs  →  https://&lt;you&gt;.github.io/&lt;repo&gt;/
+# This file you are reading IS docs/index.html. preview.html at the repo root
+# is the same page for local double-click preview.</code></pre>
+
+<footer>MIT · Regenerate everything: <code>python3 benchmarks/run_all_benchmarks.py --fast &amp;&amp; python3 tools/make_assets.py &amp;&amp; python3 tools/make_site.py</code> · Live data: Yahoo Finance (education use) · Numbers: results/*.json</footer>
+</div>
+<script>
+const Q=[
+{q:"When LoRA trains, what happens to the base weights W0?",o:["They are updated normally","They stay frozen — only A,B learn","They are deleted","They are quantized to 1 bit"],a:1,l:"Level 1 · Foundations",h:"Step 1: base has 1,644,608 numbers. Step 2: full-FT changes all (and forgets). Step 6: optimizer only holds A,B — base arrays are bit-identical after training.",e:"results/step6.json frozen=true. The base is never in the optimizer's hands."},
+{q:"What do you ship per style with LoRA?",o:["A full 6.6MB model copy","Two thin matrices A,B (~75KB float32)","The optimizer state","The training data"],a:1,l:"Level 1 · Foundations",h:"Step 1: W1+W2+W3 shapes force 18,688 numbers at r=4 (1.14%). Step 2: 100 full copies vs 1 base + 100 adapters.",e:"100 styles: 1316MB copies vs 28.3MB base+adapters (07 log)."},
+{q:"Write the LoRA forward pass.",o:["out = W·x + (α/r)·B·(A·x)","out = B·x + A·x","out = W·x (no change)","out = softmax(B·A)"],a:0,l:"Level 1 · Foundations",h:"Step 1: A squeezes 1024→4, B spreads 4→1024. Step 2: scale α/r=8/4=2. Step 3: add to the frozen path.",e:"src/common.py forward(); 05 asserts fresh adapter diff = 0.0."},
+{q:"Why does B start at zeros (and A random)?",o:["Speed","So the adapter is exactly the base at init","Regularization","Convention"],a:1,l:"Level 1 · Foundations",h:"Step 1: anything × 0 = 0, so B·A = zeros. Step 2: training starts exactly at the base and moves smoothly. Step 3: A can't be zero or nothing learns.",e:"src/05_lora_layer.py max diff = 0.0."},
+{q:"This style task needs what rank?",o:["r=64","r≈2 (r=2 already 94.8%)","r=1024","rank doesn't matter"],a:1,l:"Level 2 · Dials",h:"Step 1: sweep r=1..16 → 61.5/94.8/97.5/98.8/99.3. Step 2: the r=1→2 jump (+33pp) dwarfs r=4→16 (+1.8pp).",e:"results/step8.json rank sweep."},
+{q:"Cut the finished full-FT change down to rank 4. What happens?",o:["Stays 99%","Collapses to ~18%","Improves","Loss goes to zero"],a:1,l:"Level 2 · Dials",h:"Step 1: full ΔW needs k90=71 directions. Step 2: keep-64: 100%, keep-16: 96%, keep-4: 18.3%, keep-1: 0%.",e:"results/step4.json."},
+{q:"Merged model vs adapter model: max logit difference?",o:["~0.5","~1e-2","2.8e-14 (rounding only)","unknown"],a:2,l:"Level 2 · Dials",h:"Step 1: merge W ← W + scale·B·A once. Step 2: compare 2,000 score positions. Step 3: top word same every time.",e:"07_merge_swap.py log."},
+{q:"Which single matrix matters most alone?",o:["W1 (1.7%)","W2 (32.7%)","W3 (5.0%)","They tie"],a:1,l:"Level 2 · Dials",h:"Step 1: honest target-only training (others B≡0). Step 2: all-three reaches 98.0%. Step 3: breadth beats rank.",e:"results/hidden.json ablate_*."},
+{q:"How concentrated is the output-layer change ΔW3?",o:["k90=85","k90=71","k90=8 (far more concentrated)","full rank"],a:2,l:"Level 3 · Pro",h:"Step 1: SVD energy per matrix. Step 2: W1 k90=85, W2 k90=71, W3 k90=8. Step 3: budget tiny r on W3, larger on W2.",e:"results/step3.json + hidden.json."},
+{q:"Full fine-tuning forgets plain English. Numbers?",o:["1.10 → 1.11","1.10 → 6.73","6.73 → 1.10","no change"],a:1,l:"Level 3 · Pro",h:"Step 1: base plain loss 1.10. Step 2: after pirate FT, 6.73. Step 3: with LoRA attached-off, still 1.10.",e:"results/step2.json plain_after; hidden.json."},
+{q:"Live market spectrum: top-2 factors explain?",o:["~10%","~30%","57.2% — markets are low-rank too","100%"],a:2,l:"Level 3 · Pro",h:"Step 1: fetch 5-tech closes live. Step 2: correlation eigenvalues. Step 3: analogue of intrinsic dimension.",e:"results/realdata.json market_eig_top2_share."},
+{q:"Live next-day task: full vs LoRA-r4 validation?",o:["full 90% vs LoRA 40%","full 58.3% vs LoRA 61.1% at 27.9% params","tie at 50%","LoRA always loses"],a:1,l:"Level 3 · Pro",h:"Step 1: 8-day windows → AAPL direction. Step 2: held-out split. Step 3: LoRA regularizes (train 91% vs 100%) and generalizes.",e:"results/livemarket.json."}
+];
+let i=0,score=0;
+const qq=document.getElementById('qq'),qo=document.getElementById('qo'),qf=document.getElementById('qf'),
+qh=document.getElementById('qh'),qn=document.getElementById('qn'),qs=document.getElementById('qs'),
+qp=document.getElementById('qp'),qc=document.getElementById('qc'),ql=document.getElementById('ql'),qd=document.getElementById('qdone');
+function render(){
+const t=Q[i];ql.textContent=t.l;qc.textContent=`Question ${i+1}/12`;qq.textContent=t.q;qo.innerHTML='';qf.textContent='';qn.style.display='none';qh.textContent=t.h;
+qp.style.width=(i/12*100)+'%';
+t.o.forEach((txt,k)=>{const b=document.createElement('button');b.className='opt';b.textContent=txt;
+b.onclick=()=>{const ok=k===t.a;[...qo.children].forEach((c,j)=>{if(j===t.a)c.classList.add('ok')});if(!ok)b.classList.add('bad');
+qf.textContent=(ok?'✓ Correct. ':'✗ Not quite. ')+t.e;if(ok)score++;qs.textContent=score;qn.style.display='inline-block';
+[...qo.children].forEach(c=>c.disabled=true);qp.style.width=((i+1)/12*100)+'%';};qo.appendChild(b);});}
+qn.onclick=()=>{i++;if(i<Q.length)render();else{qq.textContent=`Done! You scored ${score}/12.`;
+qo.innerHTML='';qf.textContent=score>=10?'Pro level — you can whiteboard LoRA cold.':score>=7?'Solid intermediate — rerun the Level-2 scripts.':'Foundations in place — start at the Beginner guide.';qn.style.display='none';
+qd.textContent='Levels: 9–12 pro · 6–8 intermediate · 0–5 foundations.';}};
+render();
+</script>
+</body>
+</html>

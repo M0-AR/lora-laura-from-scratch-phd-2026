@@ -1,0 +1,24 @@
+{
+  "rule_acc": 0.9,
+  "mlp_full_acc": 1.0,
+  "mlp_lora_r4_acc": 0.8333333333333334,
+  "n_real_sentences": 30,
+  "citation": "Malo et al. 2014 Financial PhraseBank (style sample, embedded for offline repro)",
+  "live_rows": 65,
+  "live_cols": [
+    "AAPL",
+    "AMZN",
+    "META",
+    "MSFT",
+    "NVDA"
+  ],
+  "market_source": "yfinance_live",
+  "market_eig_top2_share": 0.5721058721844117,
+  "market_eig_all": [
+    1.7262391626608373,
+    1.1342901982612206,
+    0.9563203532450074,
+    0.8221863506284341,
+    0.3609639352045002
+  ]
+}
