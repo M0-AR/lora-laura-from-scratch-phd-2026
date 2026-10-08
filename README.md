@@ -17,7 +17,17 @@
 
 | | |
 |---|---|
-| 🌐 **Interactive website** | `preview.html` (double-click) or live at **https://m0-ar.github.io/lora-laura-from-scratch-phd-2026/** — enable via **Settings → Pages → Deploy from a branch → `main` + `/docs`** |
+| 🌐 **Interactive website** | Local: open `preview.html` (double-click). Hosted (click to verify rendering): the three links below — all green when Pages deploys branch `main`, folder `/` (root). Enable via **Settings → Pages → Deploy from a branch → `main` + `/`** |
+
+### Live links (click — each must render in the browser)
+
+| URL | What it is | Works when |
+|---|---|---|
+| [https://m0-ar.github.io/lora-laura-from-scratch-phd-2026/](https://m0-ar.github.io/lora-laura-from-scratch-phd-2026/) | `/` — redirect page → site | Pages source `/` (root) ✅ |
+| [https://m0-ar.github.io/lora-laura-from-scratch-phd-2026/preview.html](https://m0-ar.github.io/lora-laura-from-scratch-phd-2026/preview.html) | `/preview.html` — full interactive site + quiz | Pages source `/` (root) ✅ |
+| [https://m0-ar.github.io/lora-laura-from-scratch-phd-2026/docs/preview.html](https://m0-ar.github.io/lora-laura-from-scratch-phd-2026/docs/preview.html) | `/docs/preview.html` — same page, mirror path | Pages source `/` (root) ✅ |
+
+> Why three links? A green Pages deployment only proves *something* built — never that *your path* exists under the configured source. URL paths mirror repo paths under the source, so `docs/preview.html` in the repo serves at `/docs/preview.html` with source `/`, but at `/preview.html` with source `/docs`. This repo ships mirrors (`docs/index.html` + `docs/preview.html` canonical, root `preview.html` copy, root `index.html` redirect, `.nojekyll` in both) so the recommended setting — **branch `main`, folder `/` (root)** — renders all three (200/200/200). Asset paths are relative, so project Pages (`/<repo>/` prefix) work.
 | 🎬 **Demo video** | `docs/assets/demo.mp4` (video) + `docs/assets/demo.gif` (inline GIF below) — bars grow to the measured values |
 | 🧪 **Interactive quiz** | 12 questions, 3 levels, in the website (§Quiz) — from scratch to pro |
 | 🚀 **Quick start** | `pip install -r requirements.txt && python3 benchmarks/run_all_benchmarks.py --fast && python3 -m pytest tests/ -v` |
@@ -195,8 +205,8 @@ src/ 01_base_model.py 02_full_finetune.py 03_delta_svd.py 04_rank_demo.py
      05_lora_layer.py 06_train_lora.py 07_merge_swap.py 08_rank_alpha.py common.py
 benchmarks/ run_all_benchmarks.py hidden_patterns.py realdata_verify.py live_market_lora.py
 tools/ make_assets.py make_site.py screenshot.py verify_readme.py
-tests/ test_all.py  results/  docs/ (index.html Pages site + assets + REFERENCES.md + VARIANTS.md)
-preview.html (root copy of the site for local double-click)  Dockerfile  docker-compose.yml
+tests/ test_all.py  results/  docs/ (index.html + preview.html Pages site + assets + REFERENCES.md + VARIANTS.md)
+index.html (root redirect)  preview.html (root site copy)  .nojekyll + docs/.nojekyll  Dockerfile  docker-compose.yml
 ```
 
 ---

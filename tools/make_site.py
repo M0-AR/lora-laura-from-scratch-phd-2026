@@ -158,11 +158,11 @@ python3 src/07_merge_swap.py
 <details><summary>Does it work on real data?</summary><p>Yes: human sentences (LoRA-r4 83.3% vs rule 90%, full 100%) and live next-day prediction (LoRA 61.1% vs full 58.3%).</p></details>
 
 <h2 id="pages">View as a website (GitHub Pages, 2026)</h2>
-<pre><code># publish this page for your fork (deploy from branch):
-# 1. Push. 2. GitHub → Settings → Pages → Deploy from a branch
-# 3. Branch: main · Folder: /docs  →  https://&lt;you&gt;.github.io/&lt;repo&gt;/
-# This file you are reading IS docs/index.html. preview.html at the repo root
-# is the same page for local double-click preview.</code></pre>
+<p>All three URLs below resolve when Pages deploys from branch <code>main</code>, folder <code>/</code> (root) — the recommended setting for this repo:</p>
+<pre><code># 1. Push. 2. GitHub → Settings → Pages → Deploy from a branch
+# 3. Branch: main · Folder: / (root)
+# Mirrors in this repo: docs/index.html + docs/preview.html (canonical),
+# preview.html (root copy), index.html (root redirect), .nojekyll (root + docs).</code></pre>
 
 <footer>MIT · Regenerate everything: <code>python3 benchmarks/run_all_benchmarks.py --fast &amp;&amp; python3 tools/make_assets.py &amp;&amp; python3 tools/make_site.py</code> · Live data: Yahoo Finance (education use) · Numbers: results/*.json</footer>
 </div>
